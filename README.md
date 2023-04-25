@@ -33,4 +33,6 @@ WEATHER_API_KEY = 'Ваш API-ключ для доступа к OpenWeatherMap'
 EX_API_KEY = 'Ваш API-ключ для доступа к Exchange Rates API'
 
 Запустить проект
+```python
 python3 main.py
+```
