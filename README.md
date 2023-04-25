@@ -28,9 +28,9 @@ pip install requirements
 touch .env
 ```
 Указать константы
-BOT_KEY = 'токен вашего бота (получить https://t.me/BotFather)'
-WEATHER_API_KEY = 'Ваш API-ключ для доступа к OpenWeatherMap'
-EX_API_KEY = 'Ваш API-ключ для доступа к Exchange Rates API'
+BOT_KEY = 'токен вашего бота (получить https://t.me/BotFather)'  
+WEATHER_API_KEY = 'Ваш API-ключ для доступа к OpenWeatherMap'  
+EX_API_KEY = 'Ваш API-ключ для доступа к Exchange Rates API'  
 
 Запустить проект
 ```python
