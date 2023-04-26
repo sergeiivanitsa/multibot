@@ -1,5 +1,7 @@
 import aiohttp
 import requests
+from aiogram.dispatcher.filters import Text
+
 from create_bot import bot
 from aiogram import types, Dispatcher, Bot
 from aiogram.utils import exceptions
@@ -7,6 +9,7 @@ from transliterate import translit
 from create_bot import dp
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 WEATHER_API_KEY = os.getenv('WEATHER_API_KEY')
@@ -88,6 +91,97 @@ async def currency_conversion(message: types.Message):
         await message.answer("Неверный код валюты")
 
 
+"""************************************_Опросы_Polls_************************************"""
+
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram import types
+
+
+class FSMPolls(StatesGroup):
+    question = State()
+    answers = State()
+    chatlink = State()
+
+
+# Ловим ответ
+async def catch_options(message: types.Message):
+    text = await message.text
+    return text
+
+
+# Начало диалога создания
+#@dp.message_handler(commands='/polls', state=None)
+async def polls_start_command(message: types.Message):
+    await FSMPolls.question.set()
+    await message.reply('Укажи вопрос')
+
+
+# Ловим ответ и пишем в словарь
+#@dp.message_handler(state=FSMPolls.question)
+async def catch_question(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['question'] = message.text
+    await FSMPolls.next()
+    await message.reply('Теперь введи количество ответов')
+
+
+# Ловим варианты ответов
+#@dp.message_handler(state=FSMPolls.answers)
+async def catch_answers(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        num_options = int(message.text)
+    answers = []
+    for num in range(num_options):
+        await message.reply(f'Укажи ответ на вопрос номер {num}')
+        answer = await catch_options(message)
+        answers.append(answer)
+    data['answers'] = answers
+    await FSMPolls.next()
+    await message.reply('Укажи ссылку на чат, куда нужно отправить опрос')
+
+
+# Выход из состояний
+#@dp.message_handler(state='*', commands='отмена')
+#@dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.finish()
+    await message.reply('OK')
+
+
+# Выход из состояний
+#@dp.message_handler(state=FSMPolls.chatlink)
+async def catch_chatlink(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['chatlink'] = message.text
+
+    # здесь реализовать отпрвку опроса в чат
+    # async def start_command(message: types.Message):
+
+    poll = types.Poll(
+        question=data['question'],
+        options=data['answers'],
+        type=types.PollType.REGULAR,
+        is_anonymous=False)
+
+    await bot.send_poll(chat_id=message.chat.id, poll=poll)
+    await state.finish()
+
+
+"""*********************************_Конец_Опросов_Polls_*********************************"""
+
+
 def register_handlers_other(dp: Dispatcher):
     dp.register_message_handler(currency_conversion, regexp='\w{3}\s\d+\s\w{3}')
-    dp.register_message_handler(get_weather, lambda message: message.text and 'погода' in message.text.lower(), state="*")
+    dp.register_message_handler(get_weather, lambda message: message.text and 'погода' in message.text.lower(),
+                                state="*")
+    dp.register_message_handler(polls_start_command, commands='/polls', state=None)
+    dp.register_message_handler(catch_question, state=FSMPolls.question)
+    dp.register_message_handler(catch_answers, state=FSMPolls.answers)
+    dp.register_message_handler(cancel_handler, state='*', commands='отмена')
+    dp.register_message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state='*')
+    dp.register_message_handler(catch_chatlink, state=FSMPolls.chatlink)
+
