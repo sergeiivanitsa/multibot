@@ -1,2 +1,5 @@
 .env
-.venv
+venv/*
+handlers/pycache/*
+.idea/*
+__pycache__/*

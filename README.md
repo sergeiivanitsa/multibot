@@ -21,7 +21,7 @@ source venv/bin/activate
 ```
 Установить зависимости:
 ```python
-pip install requirements
+pip install -r requirements
 ```
 Создать файл .env в корневой папке проекта:
 ```python

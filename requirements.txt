@@ -13,5 +13,7 @@ multidict==6.0.4
 python-dotenv==1.0.0
 pytz==2023.3
 requests==2.28.2
+six==1.16.0
+transliterate==1.10.2
 urllib3==1.26.15
 yarl==1.8.2
